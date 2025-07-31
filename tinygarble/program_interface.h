@@ -94,7 +94,7 @@ class TinyGarblePI{
 	}	
 	void assign(lmkvm* y_x, lmkvm* a_x, uint64_t bit_width){
 	/*y = a_x*/
-		y_x->copy(a_x, 0, bit_width);
+		y_x->copy(a_x->att(0), 0, bit_width);
 	}	
 	void assign(lmkvm* y_x, lmkvm* a_x, uint64_t bit_width_y, uint64_t bit_width_a){
 	/*y = a_x*/
@@ -617,6 +617,20 @@ class TinyGarblePI{
 		delete b_x;
 	}
 
+	
+	void ifelse(lmkvm* y_x, lmkvm* c_x, int64_t b, lmkvm* a_x, uint64_t bit_width){
+		auto b_x = TG_int_init(PUBLIC, bit_width, b);
+		lmkvm* ab_x = new lmkvm(2*bit_width);
+		ab_x->copy(a_x, 0, bit_width);
+		ab_x->copy(b_x, bit_width, bit_width);		
+		string netlist_address = string(NETLIST_PATH_PI) + "ifelse_" + to_string(bit_width) + "bit.emp.bin";	
+		CircuitFile cf(netlist_address.c_str(), true);
+		uint64_t cycles = 1, repeat = 1, output_mode = 2;	
+		sequential_2pc_exec(twopc, c_x, ab_x, nullptr, y_x, party, io, &cf, cycles, repeat, output_mode);	
+		delete ab_x;
+		delete b_x;
+	}
+
 	/*a << shift*/
 	void left_shift(lmkvm* a_x, uint64_t shift, uint64_t bit_width){
 		for (int64_t i = bit_width - 1; i >= (int64_t)shift; i--){
@@ -630,8 +644,14 @@ class TinyGarblePI{
 	void right_shift(lmkvm* a_x, uint64_t shift, uint64_t bit_width){	
 		a_x->copy(a_x->att(shift), 0, bit_width - shift);
 		for (uint64_t i = bit_width - shift; i < bit_width; i++){
-			a_x->copy(a_x->att(bit_width - 1), i, 1);
+			//a_x->copy(a_x->att(bit_width - 1), i, 1);
+			a_x->copy(twopc->const_lmkvm->att(0), i, 1);//@ssr padding zero instead of the MSB
 		}
+	}
+
+	/*a >> shift*/
+	void right_shift(lmkvm* y_x, lmkvm* a_x, uint64_t shift, uint64_t bit_width){	
+		y_x->copy(a_x->att(shift), 0, bit_width - shift);
 	}
 
 	/*relu(a)*/		
@@ -644,8 +664,11 @@ class TinyGarblePI{
 		}
 		mask_x->copy(twopc->const_lmkvm->att(0), bit_width-1, 1);
 		and_(a_x, a_x, mask_x, bit_width);
+		delete sign_x;
+		delete mask_x;
 	}
 
+	
 };
 
 #endif //PROGRAM_INTERFACE_H

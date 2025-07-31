@@ -533,7 +533,14 @@ class TinyGarblePI_SH{
 			a_x[i] = a_x[i + shift];
 		}
 		for (uint64_t i = bit_width - shift; i < bit_width; i++){
-			a_x[i] = a_x[bit_width - 1];
+			a_x[i] = twopc->label_const[0];
+		}
+	}
+
+	/*a >> shift*/
+	void right_shift(block*& y_x, block* a_x, uint64_t shift, uint64_t bit_width){	
+		for (uint64_t i = 0; i < bit_width - shift; i++){
+			y_x[i] = a_x[i + shift];
 		}
 	}
 	
@@ -647,6 +654,18 @@ class TinyGarblePI_SH{
 		delete[] ab_x;
 		clear_TG_int(b_x);
 	}
+	void ifelse(block*& y_x, block* c_x, int64_t b, block* a_x, uint64_t bit_width){	
+		auto b_x = TG_int_init(PUBLIC, bit_width, b);
+		block* ab_x = new block[2*bit_width];
+		memcpy(ab_x, a_x, bit_width*sizeof(block));
+		memcpy(ab_x + bit_width, b_x, bit_width*sizeof(block));		
+		string netlist_address = string(NETLIST_PATH_PI) + "ifelse_" + to_string(bit_width) + "bit.emp.bin";	
+		CircuitFile cf(netlist_address.c_str(), true);
+		uint64_t cycles = 1, repeat = 1, output_mode = 2;	
+		sequential_2pc_exec_sh(twopc, c_x, ab_x, nullptr, y_x, party, io, &cf, cycles, repeat, output_mode);		
+		delete[] ab_x;
+		clear_TG_int(b_x);
+	}
 	
 	/*relu(a)*/		
 	void relu(block* &a_x, uint64_t bit_width){
@@ -661,7 +680,7 @@ class TinyGarblePI_SH{
 		delete[] sign_x;
 		delete[] mask_x;
 	}
-	
+
 };	
 
 #endif //PROGRAM_INTERFACE_SH_H

@@ -1,3 +1,22 @@
+# TinyGarble2.0 For Ransom Negotiation
+This project is a fork of TinyGarble2.0, with the addition of exec/neogotiation.cpp.
+
+To run the above program,
+
+    On Alice's terminal
+
+    ```
+    ./bin/negotiation
+    ```
+
+    On Bob's terminal
+
+    ```
+    ./bin/negotiation -k 2
+    ```
+
+---
+
 # PROJECT NOT UNDER ACTIVE MANAGEMENT #  
 This project will no longer be maintained by Intel.  
 Intel has ceased development and contributions including, but not limited to, maintenance, bug fixes, new releases, or updates, to this project.  
